@@ -1,0 +1,29 @@
+import { Link } from "react-router";
+import { SITE } from "~/config";
+import { GAMES } from "~/data/games";
+import { LESSONS } from "~/data/lessons";
+
+export function PassPitch() {
+	return (
+		<section className="py-8" aria-labelledby="pass-h">
+			<div className="rounded-[2rem] bg-gradient-to-br from-indigo-600 to-violet-600 text-white p-8 md:p-12 grid md:grid-cols-[1.4fr_1fr] gap-8 items-center shadow-2xl">
+				<div>
+					<p className="font-bold text-amber-300 mb-2">🔑 {SITE.pass.name}</p>
+					<h2 id="pass-h" className="text-3xl md:text-4xl font-bold mb-4">Unlock everything. Once. For the whole family.</h2>
+					<ul className="space-y-2 text-lg">
+						<li>✅ All {LESSONS.length} lessons with quizzes</li>
+						<li>✅ All {GAMES.length} games, plus new ones as they're added</li>
+						<li>✅ Every kid in your home</li>
+						<li>✅ No subscription. No ads. Ever.</li>
+					</ul>
+				</div>
+				<div className="bg-white text-indigo-950 rounded-3xl p-6 text-center">
+					<p className="text-5xl font-bold">{SITE.pass.price}</p>
+					<p className="text-slate-600 mb-4">{SITE.pass.priceNote}</p>
+					<Link to="/family-pass" className="btn-primary w-full">Get the {SITE.pass.name}</Link>
+					<p className="text-sm text-slate-500 mt-3">Secure checkout by Stripe</p>
+				</div>
+			</div>
+		</section>
+	);
+}
