@@ -1,41 +1,43 @@
 import { useEffect, useRef, useState } from "react";
-import { WinScreen } from "~/components/ui";
-import { saveStars, shuffle } from "~/lib/progress";
+import { shuffle } from "~/lib/progress";
+import type { GameProps } from ".";
+import { LevelDone } from "./LevelDone";
 
-const FACES = ["🐶", "🐱", "🐸", "🦊", "🐼", "🐵", "🦁", "🐷", "🐙", "🦄"];
-const LEVELS = [
-	{ pairs: 3, cols: "grid-cols-3" },
-	{ pairs: 6, cols: "grid-cols-4" },
-	{ pairs: 8, cols: "grid-cols-4" },
+const THEMES = [
+	["🐶", "🐱", "🐸", "🦊", "🐼", "🐵", "🦁", "🐷", "🐙", "🦄", "🐨", "🐯"],
+	["🍎", "🍌", "🍇", "🍓", "🍉", "🍍", "🥝", "🍒", "🍑", "🥕", "🌽", "🍋"],
+	["🚗", "🚀", "🚲", "⛵", "🚂", "🚁", "🚒", "🚜", "🛸", "🚌", "🛵", "✈️"],
+	["🌞", "🌙", "⭐", "🪐", "☄️", "🌍", "🌈", "⚡", "❄️", "🔥", "🌊", "☁️"],
+	["🐠", "🐳", "🦀", "🐬", "🦑", "🐢", "🦭", "🐡", "🦐", "🐚", "🦈", "🐊"],
 ];
+
+// Level 1 has 3 pairs; every two levels add a pair, up to 12 pairs (24 cards).
+const pairsFor = (level: number) => Math.min(12, 2 + Math.ceil(level / 2));
+const colsFor = (cards: number) =>
+	cards <= 6 ? "grid-cols-3" : cards <= 12 ? "grid-cols-4" : cards <= 20 ? "grid-cols-5" : "grid-cols-6";
 
 type Card = { id: number; face: string; matched: boolean };
 
-function deal(pairs: number): Card[] {
-	const faces = shuffle(FACES).slice(0, pairs);
+function deal(level: number): Card[] {
+	const faces = shuffle(THEMES[(level - 1) % THEMES.length]).slice(0, pairsFor(level));
 	return shuffle([...faces, ...faces]).map((face, id) => ({ id, face, matched: false }));
 }
 
-export default function MemoryMatch() {
-	const [level, setLevel] = useState(0);
-	const [cards, setCards] = useState(() => deal(LEVELS[0].pairs));
+export default function MemoryMatch({ slug, level }: GameProps) {
+	const [cards, setCards] = useState(() => deal(level));
 	const [open, setOpen] = useState<number[]>([]);
 	const [moves, setMoves] = useState(0);
 	const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 	useEffect(() => () => clearTimeout(timer.current), []);
 
-	const { pairs, cols } = LEVELS[level];
+	const pairs = pairsFor(level);
 	const won = cards.every((c) => c.matched);
-	const stars = moves <= pairs * 1.5 ? 3 : moves <= pairs * 2.5 ? 2 : 1;
+	const stars = moves <= pairs * 1.5 ? 3 : moves <= pairs * 2.2 ? 2 : 1;
+	const big = cards.length > 12;
 
-	useEffect(() => {
-		if (won) saveStars(`game:memory-match:${level}`, stars);
-	}, [won, level, stars]);
-
-	function start(next: number) {
+	function restart() {
 		clearTimeout(timer.current);
-		setLevel(next);
-		setCards(deal(LEVELS[next].pairs));
+		setCards(deal(level));
 		setOpen([]);
 		setMoves(0);
 	}
@@ -56,25 +58,16 @@ export default function MemoryMatch() {
 	}
 
 	if (won) {
-		const last = level === LEVELS.length - 1;
-		return (
-			<WinScreen
-				stars={stars}
-				message={last ? "Memory master!" : `Level ${level + 1} done!`}
-				onAgain={() => start(last ? 0 : level + 1)}
-				nextHref={last ? "/games" : undefined}
-				nextLabel="More games"
-			/>
-		);
+		return <LevelDone slug={slug} level={level} stars={stars} message="Memory master!" onAgain={restart} />;
 	}
 
 	return (
 		<div>
 			<div className="flex justify-between items-center mb-4 font-bold text-indigo-900">
-				<span>Level {level + 1} of {LEVELS.length}</span>
+				<span>{pairs} pairs</span>
 				<span>Moves: {moves}</span>
 			</div>
-			<div className={`grid ${cols} gap-3 max-w-md mx-auto`}>
+			<div className={`grid ${colsFor(cards.length)} gap-2 sm:gap-3 max-w-lg mx-auto`}>
 				{cards.map((c, i) => {
 					const shown = c.matched || open.includes(i);
 					return (
@@ -83,7 +76,7 @@ export default function MemoryMatch() {
 							type="button"
 							onClick={() => flip(i)}
 							aria-label={shown ? c.face : "Hidden card"}
-							className={`aspect-square rounded-2xl text-4xl sm:text-5xl font-bold shadow-md transition-all duration-200 motion-reduce:transition-none ${
+							className={`aspect-square min-h-11 rounded-2xl ${big ? "text-2xl sm:text-4xl" : "text-4xl sm:text-5xl"} font-bold shadow-md transition-all duration-200 motion-reduce:transition-none ${
 								c.matched
 									? "bg-emerald-100 scale-95"
 									: shown

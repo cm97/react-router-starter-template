@@ -52,7 +52,7 @@ function Header() {
 				{data?.pass ? (
 					<span className="ml-1 px-3 py-2 rounded-full bg-emerald-100 text-emerald-800 font-bold text-base">✓ {SITE.pass.name}</span>
 				) : (
-					<Link to="/family-pass" className="ml-1 btn-primary !min-h-11 !px-4 !text-base">Unlock all</Link>
+					<Link to="/family-pass" className="ml-1 btn-primary !min-h-11 !px-4 !text-base">Free trial</Link>
 				)}
 			</nav>
 		</header>

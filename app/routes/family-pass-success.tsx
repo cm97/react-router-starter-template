@@ -15,11 +15,11 @@ export function meta({}: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
 	const url = new URL(request.url);
-	const ok = paymentsReady(env) && (await verifyCheckout(env, url.searchParams.get("session_id")));
-	if (!ok) return { ok: false as const, link: null };
+	const subId = paymentsReady(env) ? await verifyCheckout(env, url.searchParams.get("session_id")) : null;
+	if (!subId) return { ok: false as const, link: null };
 	return data(
 		{ ok: true as const, link: url.toString() },
-		{ headers: { "Set-Cookie": await passCookie(env), "Cache-Control": "no-store" } },
+		{ headers: { "Set-Cookie": await passCookie(env, subId), "Cache-Control": "no-store" } },
 	);
 }
 
@@ -27,9 +27,9 @@ export default function Success({ loaderData }: Route.ComponentProps) {
 	if (!loaderData.ok) {
 		return (
 			<div className="card max-w-lg mx-auto mt-10 p-8 text-center">
-				<h1 className="text-3xl font-bold text-indigo-950 mb-2">We couldn't confirm that payment</h1>
+				<h1 className="text-3xl font-bold text-indigo-950 mb-2">We couldn't confirm your plan</h1>
 				<p className="text-slate-600 mb-6">
-					If you just paid, wait a moment and refresh this page. If it still doesn't work, reply to your Stripe receipt email and we'll sort it out.
+					If you just signed up, wait a moment and refresh this page. If it still doesn't work, reply to your Stripe receipt email and we'll sort it out.
 				</p>
 				<Link to="/family-pass" className="btn-primary">Back to the {SITE.pass.name}</Link>
 			</div>
@@ -39,8 +39,8 @@ export default function Success({ loaderData }: Route.ComponentProps) {
 	return (
 		<div className="card max-w-xl mx-auto mt-10 p-8 text-center">
 			<div className="text-7xl mb-3" aria-hidden>🎉</div>
-			<h1 className="text-3xl sm:text-4xl font-bold text-indigo-950 mb-2">Thank you! Everything is unlocked.</h1>
-			<p className="text-lg text-slate-700 mb-6">Every lesson and every game is ready to play on this device.</p>
+			<h1 className="text-3xl sm:text-4xl font-bold text-indigo-950 mb-2">Welcome! Your free trial has started.</h1>
+			<p className="text-lg text-slate-700 mb-6">Every lesson, game and level is unlocked on this device.</p>
 			<div className="rounded-2xl bg-amber-50 ring-2 ring-amber-200 p-4 text-left mb-6">
 				<p className="font-bold text-indigo-950 mb-1">📌 Save this page's link</p>
 				<p className="text-slate-700 text-sm mb-2">

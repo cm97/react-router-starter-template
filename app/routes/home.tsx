@@ -1,7 +1,7 @@
 import { Link, useRouteLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { GameCard, LessonCard } from "~/components/Cards";
-import { SITE } from "~/config";
+import { PLANS, SITE } from "~/config";
 import { GAMES } from "~/data/games";
 import { LESSONS } from "~/data/lessons";
 import type { loader as rootLoader } from "~/root";
@@ -18,14 +18,15 @@ const PROMISES = [
 	["🚫📺", "No ads", "Not one. Ever."],
 	["🔐", "No chat", "Kids can't talk to strangers here."],
 	["🙈", "No tracking", "No accounts. No data about your kids."],
-	["💳", "Pay once", `${SITE.pass.price} for the whole family. No subscription.`],
+	["💳", "One plan, whole family", `${SITE.pass.price} for every kid in your home. Cancel anytime.`],
 ];
 
 const FAQ = [
 	["What ages is this for?", "Ages 3 to 9. Every lesson and game shows its age range so you can pick the right one."],
 	["Can we see what's inside first?", "Yes. Every game and lesson is listed on this site with what it teaches and the ages it's for."],
-	["What does the Family Pass unlock?", "Every lesson and every game on the site, for every kid in your home. New games are included as they're added."],
-	["Is it a subscription?", `No. It's a one-time ${SITE.pass.price} payment through Stripe. You will never be charged again.`],
+	["What does the Family Plan unlock?", "Every lesson, every game and every level on the site, for every kid in your home. New games and levels are included as they're added."],
+	["How does the free trial work?", `You get ${PLANS.trialDays} days free. If you cancel before the trial ends, you pay nothing. After that it's ${PLANS.monthly.price} a month, or ${PLANS.yearly.price} a year.`],
+	["How do I cancel?", "Open the Family Plan page and tap \"Manage or cancel your plan\". You can do it online in a minute. You keep access until the end of the period you paid for."],
 	["Do my kids need an account?", "No. There are no accounts and no sign-ups. Stars are saved on your device only."],
 	["Does it work on a phone or tablet?", "Yes. Everything is built for little fingers on phones, tablets and computers."],
 ];
@@ -48,10 +49,10 @@ export default function Home() {
 						Kids think they're playing. You know they're learning.
 					</p>
 					<div className="flex flex-wrap gap-3 mt-6">
-						<Link to="/family-pass" className="btn-primary">Unlock everything</Link>
+						<Link to="/family-pass" className="btn-primary">Start free trial</Link>
 						<Link to="/games" className="btn-secondary">See the games</Link>
 					</div>
-					<p className="text-sm text-slate-500 mt-3">{`One-time ${SITE.pass.price}. No sign-up. No subscription.`}</p>
+					<p className="text-sm text-slate-500 mt-3">{`${PLANS.trialDays} days free, then ${SITE.pass.price}. Cancel anytime.`}</p>
 				</div>
 				<div className="relative grid grid-cols-2 gap-4" aria-hidden>
 					{GAMES.map((g, i) => (

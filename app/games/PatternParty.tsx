@@ -1,54 +1,64 @@
-import { useEffect, useState } from "react";
-import { ProgressDots, WinScreen } from "~/components/ui";
-import { saveStars, shuffle } from "~/lib/progress";
+import { useState } from "react";
+import { ProgressDots } from "~/components/ui";
+import { pick, shuffle } from "~/lib/progress";
+import type { GameProps } from ".";
+import { LevelDone } from "./LevelDone";
 
 const SETS = [
-	["🔴", "🔵", "🟡", "🟢"],
-	["🍎", "🍌", "🍇", "🍊"],
-	["🐶", "🐱", "🐭", "🐰"],
-	["⭐", "🌙", "☀️", "☁️"],
-	["🚗", "🚀", "🚲", "⛵"],
+	["🔴", "🔵", "🟡", "🟢", "🟣"],
+	["🍎", "🍌", "🍇", "🍊", "🍓"],
+	["🐶", "🐱", "🐭", "🐰", "🐸"],
+	["⭐", "🌙", "☀️", "☁️", "⚡"],
+	["🚗", "🚀", "🚲", "⛵", "🚂"],
 ];
-// Each rule is a repeating unit, harder ones later in the game.
-const RULES = ["AB", "AB", "AAB", "ABC", "ABB", "AABB", "ABCD", "ABAC"];
+// Repeating units for each pair of levels, from simple to tricky.
+const BANDS = [
+	["AB"],
+	["AB", "AAB"],
+	["AAB", "ABB"],
+	["ABC"],
+	["ABC", "AABB"],
+	["ABCD", "AABB"],
+	["ABAC", "ABCD"],
+	["AABC", "ABCB"],
+	["ABCDE", "AABBC"],
+	["ABCDE", "ABACD", "AABCC"],
+];
+const ROUNDS = 6;
 
 type Round = { shown: string[]; answer: string; choices: string[] };
 
-function makeRounds(): Round[] {
-	return RULES.map((rule) => {
-		const set = shuffle(SETS[Math.floor(Math.random() * SETS.length)]);
-		const pick = (ch: string) => set[ch.charCodeAt(0) - 65];
-		const seq = Array.from({ length: Math.max(6, rule.length * 2 + 1) + 1 }, (_, i) =>
-			pick(rule[i % rule.length]),
-		);
+function makeRounds(level: number): Round[] {
+	const band = BANDS[Math.min(BANDS.length - 1, Math.floor((level - 1) / 2))];
+	const choiceCount = level <= 8 ? 3 : 4;
+	return Array.from({ length: ROUNDS }, () => {
+		const rule = pick(band);
+		const set = shuffle(pick(SETS));
+		const item = (ch: string) => set[ch.charCodeAt(0) - 65];
+		const seq = Array.from({ length: Math.max(6, rule.length * 2 + 1) + 1 }, (_, i) => item(rule[i % rule.length]));
 		const answer = seq.pop()!;
-		const others = shuffle(set.filter((s) => s !== answer)).slice(0, 2);
+		const others = shuffle(set.filter((s) => s !== answer)).slice(0, choiceCount - 1);
 		return { shown: seq, answer, choices: shuffle([answer, ...others]) };
 	});
 }
 
-export default function PatternParty() {
-	const [rounds, setRounds] = useState(makeRounds);
+export default function PatternParty({ slug, level }: GameProps) {
+	const [rounds, setRounds] = useState(() => makeRounds(level));
 	const [round, setRound] = useState(0);
 	const [mistakes, setMistakes] = useState(0);
 	const [wrong, setWrong] = useState<string | null>(null);
 	const [right, setRight] = useState(false);
 
-	const done = round >= rounds.length;
-	const stars = mistakes <= 1 ? 3 : mistakes <= 4 ? 2 : 1;
+	const stars = mistakes <= 1 ? 3 : mistakes <= 3 ? 2 : 1;
 
-	useEffect(() => {
-		if (done) saveStars("game:pattern-party", stars);
-	}, [done, stars]);
-
-	if (done) {
+	if (round >= ROUNDS) {
 		return (
-			<WinScreen
+			<LevelDone
+				slug={slug}
+				level={level}
 				stars={stars}
 				message="Pattern pro!"
-				onAgain={() => { setRounds(makeRounds()); setRound(0); setMistakes(0); }}
-				nextHref="/games"
-				nextLabel="More games"
+				onAgain={() => { setRounds(makeRounds(level)); setRound(0); setMistakes(0); }}
 			/>
 		);
 	}
@@ -69,11 +79,11 @@ export default function PatternParty() {
 
 	return (
 		<div className="text-center">
-			<ProgressDots total={rounds.length} done={round} />
+			<ProgressDots total={ROUNDS} done={round} />
 			<p className="text-xl font-bold text-indigo-900 mt-6 mb-4">What comes next?</p>
 			<div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 text-4xl sm:text-5xl mb-10" aria-label={`Pattern: ${shown.join(" ")}, then what?`}>
 				{shown.map((s, i) => (
-					<span key={i} className="motion-safe:animate-[pop_300ms_ease-out_both]" style={{ animationDelay: `${i * 60}ms` }}>
+					<span key={`${round}-${i}`} className="motion-safe:animate-[pop_300ms_ease-out_both]" style={{ animationDelay: `${i * 60}ms` }}>
 						{s}
 					</span>
 				))}
@@ -83,14 +93,14 @@ export default function PatternParty() {
 					{right ? answer : "?"}
 				</span>
 			</div>
-			<div className="flex justify-center gap-4">
+			<div className="flex flex-wrap justify-center gap-3 sm:gap-4">
 				{choices.map((c) => (
 					<button
 						key={`${round}-${c}`}
 						type="button"
 						onClick={() => choose(c)}
 						aria-label={c}
-						className={`w-20 h-20 sm:w-24 sm:h-24 rounded-3xl text-5xl bg-white shadow-md ring-2 ring-indigo-200 hover:scale-105 transition motion-reduce:transition-none ${
+						className={`w-18 h-18 sm:w-24 sm:h-24 rounded-3xl text-5xl bg-white shadow-md ring-2 ring-indigo-200 hover:scale-105 transition motion-reduce:transition-none ${
 							wrong === c ? "motion-safe:animate-[shake_300ms] ring-rose-400" : ""
 						}`}
 					>
