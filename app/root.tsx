@@ -12,6 +12,7 @@ import {
 
 import type { Route } from "./+types/root";
 import { SITE } from "./config";
+import { MovingBackground } from "./components/MovingBackground";
 import { hasPass } from "./lib/pass.server";
 import "./app.css";
 
@@ -90,6 +91,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body className="min-h-screen flex flex-col">
+				<MovingBackground />
 				<a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:m-2 focus:p-3 focus:bg-white focus:rounded-xl">
 					Skip to content
 				</a>
