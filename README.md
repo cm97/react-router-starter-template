@@ -1,109 +1,60 @@
-# Welcome to React Router + Cloudflare Workers!
+# Buzzyfly Kids
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/react-router-starter-template)
+Bite-size lessons and ad-free learning games for kids ages 3 to 9, with a
+one-time **Family Pass** that unlocks everything. Built with React Router 7 on
+Cloudflare Workers.
 
-![React Router Starter Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/bfdc2f85-e5c9-4c92-128b-3a6711249800/public)
+## What's inside
 
-<!-- dash-content-start -->
+- **Lessons** (`app/data/lessons.ts`): 8 lessons in math, reading and science. Each is a few cards plus a 3-question quiz.
+- **Games** (`app/games/`): Memory Match, Math Pop, Word Builder and Pattern Party.
+- **Everything is behind the paywall.** Visitors can browse the game and lesson lists, but playing anything needs the Family Pass.
+- **Kid-safe:** no ads, no chat, no accounts and no tracking. Stars are saved in the browser only.
 
-A modern, production-ready template for building full-stack React applications using [React Router](https://reactrouter.com/) and the [Cloudflare Vite plugin](https://developers.cloudflare.com/workers/vite-plugin/).
+Site name, price label and the link back to buzzyfly.com live in `app/config.ts`.
 
-## Features
+## Turning on payments
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-- 🔎 Built-in Observability to monitor your Worker
-<!-- dash-content-end -->
+Until these three secrets are set, the buy button shows "Checkout opening soon" and all games and lessons stay locked.
 
-## Getting Started
+1. In Stripe, create a product called "Family Pass" with a **one-time** price (e.g. $19). Copy its `price_...` ID.
+2. Set the secrets on the Worker:
 
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
+   ```bash
+   npx wrangler secret put STRIPE_SECRET_KEY   # sk_live_... (or sk_test_... to test)
+   npx wrangler secret put STRIPE_PRICE_ID     # price_...
+   npx wrangler secret put SESSION_SECRET      # any long random string
+   ```
 
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/react-router-starter-template
-```
+3. Keep `pass.price` in `app/config.ts` matching the Stripe price.
 
-A live public deployment of this template is available at [https://react-router-starter-template.templates.workers.dev](https://react-router-starter-template.templates.workers.dev)
+How it works:
+1. A grown-up answers a times-table question and pays through Stripe Checkout.
+2. Stripe sends them back to `/family-pass/success`. That page checks with Stripe that the session was paid and bought the Family Pass price.
+3. It then sets a signed, year-long cookie.
+4. Opening the same success link on another device unlocks that device too.
 
-### Installation
+Locked lesson content is never sent to the browser. Paid games are checked on the server before they render.
 
-Install the dependencies:
+## Deploying
+
+GitHub Actions deploys the site. Every push to `main` builds it and runs
+`wrangler deploy` (`.github/workflows/deploy.yml`). Pull requests get a build
+and typecheck (`ci.yml`). It needs two repository secrets (Settings → Secrets
+and variables → Actions):
+
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token from the "Edit Cloudflare Workers" template
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID
+
+If you use this, turn off Cloudflare's own Git builds for the Worker
+(Settings → Build) so the two don't both deploy.
+
+## Development
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Typegen
-
-Generate types for your Cloudflare bindings in `wrangler.json`:
-
-```sh
-npm run typegen
-```
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Previewing the Production Build
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-## Deployment
-
-If you don't have a Cloudflare account, [create one here](https://dash.cloudflare.com/sign-up)! Go to your [Workers dashboard](https://dash.cloudflare.com/?to=%2F%3Aaccount%2Fworkers-and-pages) to see your [free custom Cloudflare Workers subdomain](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/) on `*.workers.dev`.
-
-Once that's done, you can build your app:
-
-```sh
-npm run build
-```
-
-And deploy it:
-
-```sh
+cp .dev.vars.example .dev.vars   # optional, only to test payments
+npm run dev                      # http://localhost:5173
+npm run typecheck
 npm run deploy
 ```
-
-To deploy a preview URL:
-
-```sh
-npx wrangler versions upload
-```
-
-You can then promote a version to production after verification or roll it out progressively.
-
-```sh
-npx wrangler versions deploy
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
