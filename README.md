@@ -36,6 +36,19 @@ How it works:
 
 Locked lesson content is never sent to the browser. Paid games are checked on the server before they render.
 
+## Deploying
+
+GitHub Actions deploys the site. Every push to `main` builds it and runs
+`wrangler deploy` (`.github/workflows/deploy.yml`). Pull requests get a build
+and typecheck (`ci.yml`). It needs two repository secrets (Settings → Secrets
+and variables → Actions):
+
+- `CLOUDFLARE_API_TOKEN`: a Cloudflare API token from the "Edit Cloudflare Workers" template
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID
+
+If you use this, turn off Cloudflare's own Git builds for the Worker
+(Settings → Build) so the two don't both deploy.
+
 ## Development
 
 ```bash
