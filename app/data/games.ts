@@ -9,6 +9,8 @@ export type GameInfo = {
 	color: string;
 };
 
+export const LEVELS_PER_GAME = 20;
+
 export const GAMES: GameInfo[] = [
 	{
 		slug: "memory-match",
@@ -17,17 +19,17 @@ export const GAMES: GameInfo[] = [
 		skill: "Memory & focus",
 		ages: "3–9",
 		free: false,
-		blurb: "Flip the cards and find every animal pair. Three levels.",
+		blurb: "Flip the cards and find every pair. Up to 24 cards by level 20.",
 		color: "from-sky-400 to-indigo-500",
 	},
 	{
 		slug: "math-pop",
 		title: "Math Pop",
 		emoji: "🎈",
-		skill: "Adding & taking away",
+		skill: "Add, subtract, multiply",
 		ages: "5–9",
 		free: false,
-		blurb: "Pop the balloon with the right answer before it floats away.",
+		blurb: "Pop the right answer before it floats away. Adding to times tables.",
 		color: "from-pink-400 to-rose-500",
 	},
 	{
@@ -37,7 +39,7 @@ export const GAMES: GameInfo[] = [
 		skill: "Spelling",
 		ages: "5–8",
 		free: false,
-		blurb: "Tap the letters in order to spell the picture word.",
+		blurb: "Spell the picture word. Three letters up to six.",
 		color: "from-amber-400 to-orange-500",
 	},
 	{

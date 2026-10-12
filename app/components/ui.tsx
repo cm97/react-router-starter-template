@@ -73,7 +73,7 @@ export function Locked({ title, emoji }: { title: string; emoji: string }) {
 				Ask a grown-up to unlock every lesson and every game, for every kid in the house.
 			</p>
 			<Link to="/family-pass" className="btn-primary">
-				Unlock for {SITE.pass.price}
+				Start your free trial
 			</Link>
 			<p className="mt-3 text-sm text-slate-500">{SITE.pass.priceNote}</p>
 		</div>
@@ -84,6 +84,6 @@ export function Tag({ free }: { free: boolean }) {
 	return free ? (
 		<span className="rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1">FREE</span>
 	) : (
-		<span className="rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1">🔑 Family Pass</span>
+		<span className="rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold px-2.5 py-1">🔑 Family Plan</span>
 	);
 }

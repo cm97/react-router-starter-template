@@ -1,38 +1,43 @@
 # Buzzyfly Kids
 
 Bite-size lessons and ad-free learning games for kids ages 3 to 9, with a
-one-time **Family Pass** that unlocks everything. Built with React Router 7 on
+**Family Plan** subscription that unlocks everything. Built with React Router 7 on
 Cloudflare Workers.
 
 ## What's inside
 
 - **Lessons** (`app/data/lessons.ts`): 8 lessons in math, reading and science. Each is a few cards plus a 3-question quiz.
-- **Games** (`app/games/`): Memory Match, Math Pop, Word Builder and Pattern Party.
-- **Everything is behind the paywall.** Visitors can browse the game and lesson lists, but playing anything needs the Family Pass.
+- **Games** (`app/games/`): Memory Match, Math Pop, Word Builder and Pattern Party, each with 20 levels that unlock one at a time. Difficulty settings for each level live at the top of each game file.
+- **Everything is behind the paywall.** Visitors can browse the game and lesson lists, but playing anything needs the Family Plan.
 - **Kid-safe:** no ads, no chat, no accounts and no tracking. Stars are saved in the browser only.
 
 Site name, price label and the link back to buzzyfly.com live in `app/config.ts`.
 
 ## Turning on payments
 
-Until these three secrets are set, the buy button shows "Checkout opening soon" and all games and lessons stay locked.
+The Family Plan is a Stripe subscription: $9.99/month or $79/year, with a
+7-day free trial. Until the secrets below are set, the buy button shows
+"Free trial opening soon" and all games and lessons stay locked.
 
-1. In Stripe, create a product called "Family Pass" with a **one-time** price (e.g. $19). Copy its `price_...` ID.
-2. Set the secrets on the Worker:
+1. In Stripe, create a product called "Family Plan" with two **recurring** prices: $9.99 monthly and $79 yearly. Copy both `price_...` IDs.
+2. In Stripe, open **Settings → Billing → Customer portal** and save it once. That page is where parents manage or cancel.
+3. Set the secrets on the Worker:
 
    ```bash
-   npx wrangler secret put STRIPE_SECRET_KEY   # sk_live_... (or sk_test_... to test)
-   npx wrangler secret put STRIPE_PRICE_ID     # price_...
-   npx wrangler secret put SESSION_SECRET      # any long random string
+   npx wrangler secret put STRIPE_SECRET_KEY      # sk_live_... (or sk_test_... to test)
+   npx wrangler secret put STRIPE_PRICE_MONTHLY   # price_... for $9.99/month
+   npx wrangler secret put STRIPE_PRICE_YEARLY    # price_... for $79/year
+   npx wrangler secret put SESSION_SECRET         # any long random string
    ```
 
-3. Keep `pass.price` in `app/config.ts` matching the Stripe price.
+4. If you change the prices, update `PLANS` and `pass.price` in `app/config.ts` to match.
 
 How it works:
-1. A grown-up answers a times-table question and pays through Stripe Checkout.
-2. Stripe sends them back to `/family-pass/success`. That page checks with Stripe that the session was paid and bought the Family Pass price.
-3. It then sets a signed, year-long cookie.
+1. A grown-up picks a plan, answers a times-table question, and starts a trial through Stripe Checkout.
+2. `/family-pass/success` checks with Stripe that the subscription is trialing or active, then sets a signed cookie holding the subscription ID.
+3. On each visit the site checks that subscription's status with Stripe, cached for up to 6 hours (on a custom domain; Cloudflare skips the cache on `*.workers.dev`, so there every page view asks Stripe). Cancelled or unpaid plans lock again.
 4. Opening the same success link on another device unlocks that device too.
+5. "Manage or cancel your plan" on `/family-pass` opens Stripe's customer portal.
 
 Locked lesson content is never sent to the browser. Paid games are checked on the server before they render.
 

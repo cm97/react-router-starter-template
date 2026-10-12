@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
-import type { GameInfo } from "~/data/games";
+import { LEVELS_PER_GAME, type GameInfo } from "~/data/games";
 import type { Lesson } from "~/data/lessons";
-import { getStars } from "~/lib/progress";
+import { gameStars, getStars } from "~/lib/progress";
 import { StarRow, Tag } from "./ui";
 
 function useStars(id: string) {
@@ -12,7 +12,8 @@ function useStars(id: string) {
 }
 
 export function GameCard({ game, unlocked }: { game: GameInfo; unlocked: boolean }) {
-	const stars = useStars(`game:${game.slug}`);
+	const [stars, setStars] = useState(0);
+	useEffect(() => setStars(gameStars(game.slug, LEVELS_PER_GAME).reduce((a, b) => a + b, 0)), [game.slug]);
 	const open = game.free || unlocked;
 	return (
 		<Link
@@ -30,8 +31,8 @@ export function GameCard({ game, unlocked }: { game: GameInfo; unlocked: boolean
 				</div>
 				<p className="text-slate-600 mb-2">{game.blurb}</p>
 				<div className="flex items-center justify-between text-sm text-slate-500">
-					<span>{game.skill} · Ages {game.ages}</span>
-					{stars > 0 && <StarRow n={stars} size="text-base" />}
+					<span>{LEVELS_PER_GAME} levels · Ages {game.ages}</span>
+					{stars > 0 && <span className="font-bold text-amber-600">⭐ {stars}/{LEVELS_PER_GAME * 3}</span>}
 				</div>
 			</div>
 		</Link>

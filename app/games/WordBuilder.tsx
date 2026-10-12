@@ -1,51 +1,64 @@
-import { useEffect, useState } from "react";
-import { ProgressDots, WinScreen } from "~/components/ui";
-import { saveStars, shuffle } from "~/lib/progress";
+import { useState } from "react";
+import { ProgressDots } from "~/components/ui";
+import { shuffle } from "~/lib/progress";
+import type { GameProps } from ".";
+import { LevelDone } from "./LevelDone";
 
-const WORDS: [string, string][] = [
-	["CAT", "🐱"], ["DOG", "🐶"], ["SUN", "☀️"], ["BEE", "🐝"], ["BUS", "🚌"], ["PIG", "🐷"],
-	["FISH", "🐟"], ["FROG", "🐸"], ["STAR", "⭐"], ["CAKE", "🎂"], ["MOON", "🌙"], ["TREE", "🌳"],
-	["APPLE", "🍎"], ["HORSE", "🐴"], ["TRAIN", "🚆"], ["ROBOT", "🤖"],
-];
-const ROUNDS = 8;
+const WORDS: Record<number, [string, string][]> = {
+	3: [
+		["CAT", "🐱"], ["DOG", "🐶"], ["SUN", "☀️"], ["BEE", "🐝"], ["BUS", "🚌"], ["PIG", "🐷"], ["COW", "🐮"],
+		["HAT", "🎩"], ["BED", "🛏️"], ["CAR", "🚗"], ["EGG", "🥚"], ["FOX", "🦊"], ["OWL", "🦉"], ["ANT", "🐜"],
+	],
+	4: [
+		["FISH", "🐟"], ["FROG", "🐸"], ["STAR", "⭐"], ["CAKE", "🎂"], ["MOON", "🌙"], ["TREE", "🌳"], ["BOOK", "📚"],
+		["SHIP", "🚢"], ["BEAR", "🐻"], ["DUCK", "🦆"], ["LION", "🦁"], ["BALL", "⚽"], ["KITE", "🪁"], ["DRUM", "🥁"],
+	],
+	5: [
+		["APPLE", "🍎"], ["HORSE", "🐴"], ["TRAIN", "🚆"], ["ROBOT", "🤖"], ["TIGER", "🐯"], ["ZEBRA", "🦓"], ["PIZZA", "🍕"],
+		["CLOCK", "⏰"], ["HOUSE", "🏠"], ["SNAKE", "🐍"], ["WHALE", "🐳"], ["CLOUD", "☁️"], ["GRAPE", "🍇"], ["SHEEP", "🐑"],
+	],
+	6: [
+		["RABBIT", "🐰"], ["ROCKET", "🚀"], ["BANANA", "🍌"], ["TURTLE", "🐢"], ["MONKEY", "🐵"], ["CASTLE", "🏰"],
+		["FLOWER", "🌸"], ["PENCIL", "✏️"], ["CHEESE", "🧀"], ["PLANET", "🪐"], ["DRAGON", "🐉"], ["CARROT", "🥕"],
+	],
+};
+const ROUNDS = 5;
 const ALPHABET = "ABCDEFGHIJKLMNOPRSTUVWY";
+
+// Levels 1–5 use 3-letter words, 6–10 four, 11–15 five, 16–20 six.
+// Within each band, extra decoy letters make the later levels harder.
+const lengthFor = (level: number) => Math.min(6, 3 + Math.floor((level - 1) / 5));
+const decoysFor = (level: number) => Math.floor(((level - 1) % 5) / 2);
 
 type Round = { word: string; emoji: string; tiles: { id: number; letter: string }[] };
 
-function makeRounds(): Round[] {
-	const short = shuffle(WORDS.filter(([w]) => w.length === 3)).slice(0, 3);
-	const mid = shuffle(WORDS.filter(([w]) => w.length === 4)).slice(0, 3);
-	const long = shuffle(WORDS.filter(([w]) => w.length === 5)).slice(0, 2);
-	return [...short, ...mid, ...long].map(([word, emoji], i) => {
-		const extra = i < 3 ? 1 : 2;
-		const letters = [...word];
-		for (let k = 0; k < extra; k++) letters.push(ALPHABET[Math.floor(Math.random() * ALPHABET.length)]);
-		return { word, emoji, tiles: shuffle(letters).map((letter, id) => ({ id, letter })) };
-	});
+function makeRounds(level: number): Round[] {
+	return shuffle(WORDS[lengthFor(level)])
+		.slice(0, ROUNDS)
+		.map(([word, emoji]) => {
+			const letters = [...word];
+			for (let k = 0; k < decoysFor(level); k++) letters.push(ALPHABET[Math.floor(Math.random() * ALPHABET.length)]);
+			return { word, emoji, tiles: shuffle(letters).map((letter, id) => ({ id, letter })) };
+		});
 }
 
-export default function WordBuilder() {
-	const [rounds, setRounds] = useState(makeRounds);
+export default function WordBuilder({ slug, level }: GameProps) {
+	const [rounds, setRounds] = useState(() => makeRounds(level));
 	const [round, setRound] = useState(0);
 	const [used, setUsed] = useState<number[]>([]);
 	const [shake, setShake] = useState<number | null>(null);
 	const [mistakes, setMistakes] = useState(0);
 
-	const done = round >= ROUNDS;
-	const stars = mistakes <= 2 ? 3 : mistakes <= 5 ? 2 : 1;
+	const stars = mistakes <= 1 ? 3 : mistakes <= 4 ? 2 : 1;
 
-	useEffect(() => {
-		if (done) saveStars("game:word-builder", stars);
-	}, [done, stars]);
-
-	if (done) {
+	if (round >= ROUNDS) {
 		return (
-			<WinScreen
+			<LevelDone
+				slug={slug}
+				level={level}
 				stars={stars}
 				message="Super speller!"
-				onAgain={() => { setRounds(makeRounds()); setRound(0); setUsed([]); setMistakes(0); }}
-				nextHref="/games"
-				nextLabel="More games"
+				onAgain={() => { setRounds(makeRounds(level)); setRound(0); setUsed([]); setMistakes(0); }}
 			/>
 		);
 	}
@@ -53,6 +66,7 @@ export default function WordBuilder() {
 	const { word, emoji, tiles } = rounds[round];
 	const spelled = used.map((id) => tiles.find((t) => t.id === id)!.letter).join("");
 	const complete = spelled === word;
+	const slot = word.length >= 5 ? "w-11 h-14 text-2xl" : "w-14 h-16 text-3xl";
 
 	function tap(id: number, letter: string) {
 		if (complete || used.includes(id)) return;
@@ -78,7 +92,7 @@ export default function WordBuilder() {
 				{[...word].map((_, i) => (
 					<span
 						key={i}
-						className={`grid place-items-center w-14 h-16 rounded-xl text-3xl font-extrabold border-4 ${
+						className={`grid place-items-center ${slot} rounded-xl font-extrabold border-4 ${
 							spelled[i] ? (complete ? "bg-emerald-100 border-emerald-400 text-emerald-800" : "bg-amber-100 border-amber-400 text-indigo-900") : "border-dashed border-indigo-200"
 						}`}
 					>
