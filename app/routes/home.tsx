@@ -23,7 +23,7 @@ const PROMISES = [
 
 const FAQ = [
 	["What ages is this for?", "Ages 3 to 9. Every lesson and game shows its age range so you can pick the right one."],
-	["What do we get for free?", "Two full lessons and the Memory Match game. Try them before you buy anything."],
+	["Can we see what's inside first?", "Yes. Every game and lesson is listed on this site with what it teaches and the ages it's for."],
 	["What does the Family Pass unlock?", "Every lesson and every game on the site, for every kid in your home. New games are included as they're added."],
 	["Is it a subscription?", `No. It's a one-time ${SITE.pass.price} payment through Stripe. You will never be charged again.`],
 	["Do my kids need an account?", "No. There are no accounts and no sign-ups. Stars are saved on your device only."],
@@ -48,10 +48,10 @@ export default function Home() {
 						Kids think they're playing. You know they're learning.
 					</p>
 					<div className="flex flex-wrap gap-3 mt-6">
-						<Link to="/games/memory-match" className="btn-primary">▶ Play free now</Link>
-						<Link to="/lessons" className="btn-secondary">See the lessons</Link>
+						<Link to="/family-pass" className="btn-primary">Unlock everything</Link>
+						<Link to="/games" className="btn-secondary">See the games</Link>
 					</div>
-					<p className="text-sm text-slate-500 mt-3">No sign-up. Free games start instantly.</p>
+					<p className="text-sm text-slate-500 mt-3">{`One-time ${SITE.pass.price}. No sign-up. No subscription.`}</p>
 				</div>
 				<div className="relative grid grid-cols-2 gap-4" aria-hidden>
 					{GAMES.map((g, i) => (

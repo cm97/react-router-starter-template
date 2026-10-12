@@ -20,7 +20,7 @@ export const LESSONS: Lesson[] = [
 		emoji: "🔟",
 		subject: "Math",
 		ages: "3–5",
-		free: true,
+		free: false,
 		blurb: "Count bugs, apples and stars all the way to ten.",
 		cards: [
 			{ big: "🐞", text: "This is ONE ladybug. One means just a single thing." },
@@ -40,7 +40,7 @@ export const LESSONS: Lesson[] = [
 		emoji: "🔤",
 		subject: "Reading",
 		ages: "3–5",
-		free: true,
+		free: false,
 		blurb: "Every letter makes a sound. Meet the first five.",
 		cards: [
 			{ big: "A 🍎", text: "A says “a” like in apple." },

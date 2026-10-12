@@ -16,7 +16,7 @@ export const GAMES: GameInfo[] = [
 		emoji: "🧠",
 		skill: "Memory & focus",
 		ages: "3–9",
-		free: true,
+		free: false,
 		blurb: "Flip the cards and find every animal pair. Three levels.",
 		color: "from-sky-400 to-indigo-500",
 	},

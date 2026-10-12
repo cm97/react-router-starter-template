@@ -110,7 +110,7 @@ export default function FamilyPass({ loaderData, actionData }: Route.ComponentPr
 					<div className="text-center">
 						<button type="button" disabled className="btn-primary w-full">Checkout opening soon</button>
 						<p className="mt-3 text-slate-600">
-							Until then, enjoy the free lessons and <Link to="/games/memory-match" className="underline font-bold">Memory Match</Link>.
+							Please check back soon. Meanwhile, see every <Link to="/games" className="underline font-bold">game</Link> and <Link to="/lessons" className="underline font-bold">lesson</Link> you'll get.
 						</p>
 					</div>
 				)}

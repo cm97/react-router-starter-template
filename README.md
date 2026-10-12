@@ -8,14 +8,14 @@ Cloudflare Workers.
 
 - **Lessons** (`app/data/lessons.ts`): 8 lessons in math, reading and science. Each is a few cards plus a 3-question quiz.
 - **Games** (`app/games/`): Memory Match, Math Pop, Word Builder and Pattern Party.
-- **Free sample:** *Counting to 10*, *Letter Sounds* and *Memory Match*. Everything else needs the Family Pass.
+- **Everything is behind the paywall.** Visitors can browse the game and lesson lists, but playing anything needs the Family Pass.
 - **Kid-safe:** no ads, no chat, no accounts and no tracking. Stars are saved in the browser only.
 
 Site name, price label and the link back to buzzyfly.com live in `app/config.ts`.
 
 ## Turning on payments
 
-Until these three secrets are set, the buy button shows "Checkout opening soon" and the free content still works.
+Until these three secrets are set, the buy button shows "Checkout opening soon" and all games and lessons stay locked.
 
 1. In Stripe, create a product called "Family Pass" with a **one-time** price (e.g. $19). Copy its `price_...` ID.
 2. Set the secrets on the Worker:
