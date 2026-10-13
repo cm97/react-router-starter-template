@@ -21,6 +21,19 @@ const PROMISES = [
 	["💳", "One plan, whole family", `${SITE.pass.price} for every kid in your home. Cancel anytime.`],
 ];
 
+const SUBJECTS = [
+	["📖", "Reading & Spelling", "Short phonics and word games that build confidence."],
+	["🔢", "Counting & Math", "Numbers, patterns, and early math that feel like play."],
+	["🧪", "Science", "Curious questions and simple experiments in game form."],
+	["🌟", "Focus & Fun", "Bite-size sessions that keep little attention spans engaged."],
+];
+
+const TESTIMONIALS = [
+	["Maya, mom of two", "Finally screen time I don't feel guilty about. My 5-year-old asks to play the math game."],
+	["James, dad", "No ads, no chat, no accounts. Just clean games. The free trial sold me."],
+	["Priya, parent", "Simple enough for my 4-year-old and still useful for my 7-year-old."],
+];
+
 const FAQ = [
 	["What ages is this for?", "Ages 3 to 9. Every lesson and game shows its age range so you can pick the right one."],
 	["Can we see what's inside first?", "Yes. Every game and lesson is listed on this site with what it teaches and the ages it's for."],
@@ -49,10 +62,10 @@ export default function Home() {
 						Kids think they're playing. You know they're learning.
 					</p>
 					<div className="flex flex-wrap gap-3 mt-6">
-						<Link to="/family-pass" className="btn-primary">Start free trial</Link>
+						<Link to="/family-pass" className="btn-primary text-xl px-8 py-4">Try FREE for {PLANS.trialDays} days</Link>
 						<Link to="/games" className="btn-secondary">See the games</Link>
 					</div>
-					<p className="text-sm text-slate-500 mt-3">{`${PLANS.trialDays} days free, then ${SITE.pass.price}. Cancel anytime.`}</p>
+					<p className="text-sm text-slate-500 mt-3">Then {SITE.pass.price}. Cancel anytime. No ads. No chat.</p>
 				</div>
 				<div className="relative grid grid-cols-2 gap-4" aria-hidden>
 					{GAMES.map((g, i) => (
@@ -62,6 +75,19 @@ export default function Home() {
 							style={{ animationDelay: `${i * 0.6}s` }}
 						>
 							{g.emoji}
+						</div>
+					))}
+				</div>
+			</section>
+
+			<section className="py-8" aria-labelledby="subjects-h">
+				<h2 id="subjects-h" className="text-3xl font-bold text-indigo-950 text-center mb-6">What they practice</h2>
+				<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+					{SUBJECTS.map(([icon, title, text]) => (
+						<div key={title} className="card p-5 text-center">
+							<div className="text-4xl mb-2" aria-hidden>{icon}</div>
+							<h3 className="text-xl font-bold text-indigo-950">{title}</h3>
+							<p className="text-slate-600">{text}</p>
 						</div>
 					))}
 				</div>
@@ -96,6 +122,18 @@ export default function Home() {
 							<div className="text-4xl mb-2" aria-hidden>{icon}</div>
 							<h3 className="text-xl font-bold text-indigo-950">{title}</h3>
 							<p className="text-slate-600">{text}</p>
+						</div>
+					))}
+				</div>
+			</section>
+
+			<section className="py-8" aria-labelledby="love-h">
+				<h2 id="love-h" className="text-3xl font-bold text-indigo-950 text-center mb-6">Parents like this</h2>
+				<div className="grid md:grid-cols-3 gap-4">
+					{TESTIMONIALS.map(([name, quote]) => (
+						<div key={name} className="card p-6">
+							<p className="text-slate-700 italic mb-3">"{quote}"</p>
+							<p className="font-bold text-indigo-950">{name}</p>
 						</div>
 					))}
 				</div>
