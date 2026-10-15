@@ -3,10 +3,17 @@
 // The subscription's status is re-checked with Stripe at most every few
 // hours, so cancelled or unpaid plans lock again. No accounts and no
 // stored data about kids.
+//
+// Without those secrets the site can still sell through Stripe Payment
+// Links (PAYMENT_LINKS in config). In that mode Stripe's redirect to the
+// success page unlocks the device with a plain cookie. It can't be checked
+// with Stripe, so cancelled plans stay unlocked. Setting the secrets
+// switches back to the checked flow.
 
-import { PLANS, type PlanId } from "~/config";
+import { PAYMENT_LINKS, PLANS, type PlanId } from "~/config";
 
 const COOKIE = "family_plan";
+const LINK_COOKIE = "family_plan_link";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 400;
 const STATUS_TTL = 60 * 60 * 6;
 const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
@@ -18,6 +25,32 @@ export function paymentsReady(env: Env): boolean {
 	return Boolean(
 		env.STRIPE_SECRET_KEY && env.STRIPE_PRICE_MONTHLY && env.STRIPE_PRICE_YEARLY && env.SESSION_SECRET,
 	);
+}
+
+/** True when both Payment Links are set, so checkout works without secrets. */
+export function linksReady(): boolean {
+	return Boolean(PAYMENT_LINKS.monthly && PAYMENT_LINKS.yearly);
+}
+
+/** True when a grown-up can start a trial by either route. */
+export function checkoutReady(env: Env): boolean {
+	return paymentsReady(env) || linksReady();
+}
+
+export function paymentLink(plan: PlanId): string {
+	return PAYMENT_LINKS[plan];
+}
+
+export const linkCookie = `${LINK_COOKIE}=1; Path=/; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
+
+function hasLinkCookie(request: Request): boolean {
+	const cookie = request.headers.get("Cookie") ?? "";
+	return new RegExp(`(?:^|;\\s*)${LINK_COOKIE}=1(?:;|$)`).test(cookie);
+}
+
+/** Payment Link mode: does this look like a session ID Stripe's redirect would send? */
+export function looksLikeCheckout(sessionId: string | null): boolean {
+	return Boolean(sessionId && SESSION_ID.test(sessionId));
 }
 
 function priceFor(env: Env, plan: PlanId): string {
@@ -100,7 +133,7 @@ async function subscriptionInfo(env: Env, subId: string): Promise<SubInfo> {
 }
 
 export async function hasPass(request: Request, env: Env): Promise<boolean> {
-	if (!paymentsReady(env)) return false;
+	if (!paymentsReady(env)) return linksReady() && hasLinkCookie(request);
 	const subId = await subscriptionId(request, env);
 	return subId ? (await subscriptionInfo(env, subId)).active : false;
 }

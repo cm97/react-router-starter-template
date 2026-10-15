@@ -1,7 +1,7 @@
 import { data, Link } from "react-router";
 import type { Route } from "./+types/family-pass-success";
 import { SITE } from "~/config";
-import { passCookie, paymentsReady, verifyCheckout } from "~/lib/pass.server";
+import { linkCookie, linksReady, looksLikeCheckout, passCookie, paymentsReady, verifyCheckout } from "~/lib/pass.server";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -15,6 +15,14 @@ export function meta({}: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
 	const url = new URL(request.url);
+	// Payment Link mode (no Stripe secrets): Stripe's redirect unlocks the device.
+	if (!paymentsReady(env)) {
+		if (!linksReady() || !looksLikeCheckout(url.searchParams.get("session_id"))) return { ok: false as const, link: null };
+		return data(
+			{ ok: true as const, link: url.toString() },
+			{ headers: { "Set-Cookie": linkCookie, "Cache-Control": "no-store" } },
+		);
+	}
 	const subId = paymentsReady(env) ? await verifyCheckout(env, url.searchParams.get("session_id")) : null;
 	if (!subId) return { ok: false as const, link: null };
 	return data(
