@@ -42,7 +42,23 @@ The Family Plan is a Stripe subscription: $9.99/month or $79/year, with a
 
 4. If you change the prices, update `PLANS` and `pass.price` in `app/config.ts` to match.
 
-How it works:
+### Or: no secrets, with Stripe Payment Links
+
+If you'd rather not set any secrets, use two Stripe Payment Links instead.
+
+1. In Stripe, create a Payment Link for each Family Plan price ($9.99 monthly and $79 yearly).
+2. In each link's options, turn on **Include a free trial** (7 days).
+3. Under **After payment**, choose "Don't show confirmation page" and redirect to
+   `https://buzzyfly.com/kids/family-pass/success?session_id={CHECKOUT_SESSION_ID}`.
+4. Paste both `https://buy.stripe.com/...` links into `PAYMENT_LINKS` in `app/config.ts`.
+5. Optional: turn on Stripe's customer portal login link and paste it into `CUSTOMER_PORTAL_URL` so "Manage or cancel your plan" works.
+
+Trade-off: without the secret key the site can't ask Stripe whether a plan is
+still paid. Landing on the success page unlocks the device, so anyone with
+that address can unlock for free, and cancelled plans stay unlocked. Setting
+the secrets above switches to the checked flow automatically.
+
+How it works (with secrets):
 1. A grown-up picks a plan, answers a times-table question, and starts a trial through Stripe Checkout.
 2. `/family-pass/success` checks with Stripe that the subscription is trialing or active, then sets a signed cookie holding the subscription ID.
 3. On each visit the site checks that subscription's status with Stripe, cached for up to 6 hours (on a custom domain; Cloudflare skips the cache on `*.workers.dev`, so there every page view asks Stripe). Cancelled or unpaid plans lock again.

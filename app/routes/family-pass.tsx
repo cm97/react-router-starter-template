@@ -1,9 +1,17 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/family-pass";
-import { BASE_PATH, PLANS, SITE, type PlanId } from "~/config";
+import { BASE_PATH, CUSTOMER_PORTAL_URL, PLANS, SITE, type PlanId } from "~/config";
 import { GAMES, LEVELS_PER_GAME } from "~/data/games";
 import { LESSONS } from "~/data/lessons";
-import { createCheckout, hasPass, paymentsReady, portalUrl, subscriptionId } from "~/lib/pass.server";
+import {
+	checkoutReady,
+	createCheckout,
+	hasPass,
+	paymentLink,
+	paymentsReady,
+	portalUrl,
+	subscriptionId,
+} from "~/lib/pass.server";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -18,18 +26,22 @@ export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
 	return {
 		pass: await hasPass(request, env),
-		ready: paymentsReady(env),
+		ready: checkoutReady(env),
 		gate: { a: rand(), b: rand() },
 	};
 }
 
 export async function action({ request, context }: Route.ActionArgs) {
 	const env = context.cloudflare.env;
-	if (!paymentsReady(env)) return data({ error: "Checkout isn't open yet. Please check back soon." }, { status: 503 });
+	if (!checkoutReady(env)) return data({ error: "Checkout isn't open yet. Please check back soon." }, { status: 503 });
 	const form = await request.formData();
 	const origin = new URL(request.url).origin;
 
 	if (form.get("intent") === "manage") {
+		if (!paymentsReady(env)) {
+			if (CUSTOMER_PORTAL_URL) return redirect(CUSTOMER_PORTAL_URL);
+			return data({ error: "Use the link in your Stripe receipt email to manage or cancel your plan." }, { status: 404 });
+		}
 		const subId = await subscriptionId(request, env);
 		const url = subId ? await portalUrl(env, subId, `${origin}${BASE_PATH}/family-pass`).catch(() => null) : null;
 		if (url) return redirect(url);
@@ -43,6 +55,8 @@ export async function action({ request, context }: Route.ActionArgs) {
 		return data({ error: "That's not quite right. Grown-ups, please try again." }, { status: 400 });
 	}
 	const plan: PlanId = form.get("plan") === "monthly" ? "monthly" : "yearly";
+	// No Stripe secrets on the Worker: send the grown-up to the Payment Link.
+	if (!paymentsReady(env)) return redirect(paymentLink(plan));
 	try {
 		return redirect(await createCheckout(env, origin, plan));
 	} catch (err) {
