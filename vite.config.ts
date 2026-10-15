@@ -5,6 +5,8 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+	// Emit client files under /kids/assets so they resolve at buzzyfly.com/kids.
+	build: { assetsDir: "kids/assets" },
 	plugins: [
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
 		tailwindcss(),

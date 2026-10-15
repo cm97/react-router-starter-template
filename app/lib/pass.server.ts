@@ -4,7 +4,7 @@
 // hours, so cancelled or unpaid plans lock again. No accounts and no
 // stored data about kids.
 
-import { PLANS, type PlanId } from "~/config";
+import { BASE_PATH, PLANS, type PlanId } from "~/config";
 
 const COOKIE = "family_plan";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 400;
@@ -60,15 +60,22 @@ async function stripe(env: Env, path: string, body?: URLSearchParams) {
 	return json;
 }
 
-/** The signed-in subscription ID from the cookie, if the signature is valid. */
-export async function subscriptionId(request: Request, env: Env): Promise<string | null> {
-	if (!env.SESSION_SECRET) return null;
+/** The raw Family Plan cookie value, if any. */
+export function rawPassCookie(request: Request): string | null {
 	const cookie = request.headers.get("Cookie") ?? "";
-	const match = cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`));
-	if (!match) return null;
-	const [version, subId, sig] = match[1].split(".");
+	return cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`))?.[1] ?? null;
+}
+
+async function verifiedSubId(env: Env, value: string | null): Promise<string | null> {
+	if (!env.SESSION_SECRET || !value) return null;
+	const [version, subId, sig] = value.split(".");
 	if (version !== "v2" || !subId || !sig || !SUB_ID.test(subId)) return null;
 	return timingSafeEqual(sig, await sign(env.SESSION_SECRET, `v2.${subId}`)) ? subId : null;
+}
+
+/** The signed-in subscription ID from the cookie, if the signature is valid. */
+export function subscriptionId(request: Request, env: Env): Promise<string | null> {
+	return verifiedSubId(env, rawPassCookie(request));
 }
 
 type SubInfo = { active: boolean; customer: string | null };
@@ -105,9 +112,19 @@ export async function hasPass(request: Request, env: Env): Promise<boolean> {
 	return subId ? (await subscriptionInfo(env, subId)).active : false;
 }
 
+/**
+ * Moves a Family Plan cookie from the old kids.buzzyfly.com host to
+ * buzzyfly.com/kids. Returns a fresh cookie if the handed-over value is
+ * validly signed, otherwise null.
+ */
+export async function handoffCookie(env: Env, value: string): Promise<string | null> {
+	const subId = await verifiedSubId(env, value);
+	return subId ? passCookie(env, subId) : null;
+}
+
 export async function passCookie(env: Env, subId: string): Promise<string> {
 	const sig = await sign(env.SESSION_SECRET!, `v2.${subId}`);
-	return `${COOKIE}=v2.${subId}.${sig}; Path=/; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
+	return `${COOKIE}=v2.${subId}.${sig}; Path=${BASE_PATH}; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export async function createCheckout(env: Env, origin: string, plan: PlanId): Promise<string> {
@@ -120,8 +137,8 @@ export async function createCheckout(env: Env, origin: string, plan: PlanId): Pr
 			"line_items[0][quantity]": "1",
 			"subscription_data[trial_period_days]": String(PLANS.trialDays),
 			allow_promotion_codes: "true",
-			success_url: `${origin}/family-pass/success?session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${origin}/family-pass`,
+			success_url: `${origin}${BASE_PATH}/family-pass/success?session_id={CHECKOUT_SESSION_ID}`,
+			cancel_url: `${origin}${BASE_PATH}/family-pass`,
 		}),
 	);
 	return session.url as string;

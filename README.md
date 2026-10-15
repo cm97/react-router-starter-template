@@ -13,6 +13,16 @@ Cloudflare Workers.
 
 Site name, price label and the link back to buzzyfly.com live in `app/config.ts`.
 
+## Where it runs
+
+The app is served at **buzzyfly.com/kids**. The main Buzzyfly Worker
+(cm97/astro-blog-starter-template) forwards every `/kids/*` request here
+through a service binding named `KIDS`. Because of that:
+
+- Routes and built files live under `/kids` (`basename` in `react-router.config.ts`, `assetsDir` in `vite.config.ts`).
+- The old address, kids.buzzyfly.com, redirects to the same page on buzzyfly.com/kids. A parent's Family Plan cookie is carried over once, so paying families stay unlocked.
+- Deploy this Worker **before** the main site when both change, so `/kids` never points at an older build.
+
 ## Turning on payments
 
 The Family Plan is a Stripe subscription: $9.99/month or $79/year, with a
