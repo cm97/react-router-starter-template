@@ -13,6 +13,16 @@ Cloudflare Workers.
 
 Site name, price label and the link back to buzzyfly.com live in `app/config.ts`.
 
+## Where it runs
+
+The app is served at **buzzyfly.com/kids**. The main Buzzyfly Worker
+(cm97/astro-blog-starter-template) forwards every `/kids/*` request here
+through a service binding named `KIDS`. Because of that:
+
+- Routes and built files live under `/kids` (`basename` in `react-router.config.ts`, `assetsDir` in `vite.config.ts`).
+- The old address, kids.buzzyfly.com, redirects to the same page on buzzyfly.com/kids. A parent's Family Plan cookie is carried over once, so paying families stay unlocked.
+- Deploy this Worker **before** the main site when both change, so `/kids` never points at an older build.
+
 ## Turning on payments
 
 The Family Plan is a Stripe subscription: $9.99/month or $79/year, with a
@@ -39,7 +49,7 @@ If you'd rather not set any secrets, use two Stripe Payment Links instead.
 1. In Stripe, create a Payment Link for each Family Plan price ($9.99 monthly and $79 yearly).
 2. In each link's options, turn on **Include a free trial** (7 days).
 3. Under **After payment**, choose "Don't show confirmation page" and redirect to
-   `https://kids.buzzyfly.com/family-pass/success?session_id={CHECKOUT_SESSION_ID}`.
+   `https://buzzyfly.com/kids/family-pass/success?session_id={CHECKOUT_SESSION_ID}`.
 4. Paste both `https://buy.stripe.com/...` links into `PAYMENT_LINKS` in `app/config.ts`.
 5. Optional: turn on Stripe's customer portal login link and paste it into `CUSTOMER_PORTAL_URL` so "Manage or cancel your plan" works.
 

@@ -1,6 +1,6 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/family-pass";
-import { CUSTOMER_PORTAL_URL, PLANS, SITE, type PlanId } from "~/config";
+import { BASE_PATH, CUSTOMER_PORTAL_URL, PLANS, SITE, type PlanId } from "~/config";
 import { GAMES, LEVELS_PER_GAME } from "~/data/games";
 import { LESSONS } from "~/data/lessons";
 import {
@@ -43,7 +43,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 			return data({ error: "Use the link in your Stripe receipt email to manage or cancel your plan." }, { status: 404 });
 		}
 		const subId = await subscriptionId(request, env);
-		const url = subId ? await portalUrl(env, subId, `${origin}/family-pass`).catch(() => null) : null;
+		const url = subId ? await portalUrl(env, subId, `${origin}${BASE_PATH}/family-pass`).catch(() => null) : null;
 		if (url) return redirect(url);
 		return data({ error: "We couldn't open your billing page. Use the link in your Stripe receipt email." }, { status: 502 });
 	}

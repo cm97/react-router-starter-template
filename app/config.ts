@@ -14,6 +14,10 @@ export const SITE = {
 	},
 } as const;
 
+// Where the app lives on buzzyfly.com. Must match `basename` in react-router.config.ts.
+export const BASE_PATH = "/kids";
+export const PUBLIC_ORIGIN = "https://buzzyfly.com";
+
 export type PlanId = "monthly" | "yearly";
 
 export const PLANS = {
@@ -26,7 +30,7 @@ export const PLANS = {
 // links, not secrets, so they live here. With both set, the plan buttons
 // work without any Stripe secrets on the Worker. In each link's settings,
 // turn on a 7-day free trial and set "After payment" to redirect to
-// https://kids.buzzyfly.com/family-pass/success?session_id={CHECKOUT_SESSION_ID}
+// https://buzzyfly.com/kids/family-pass/success?session_id={CHECKOUT_SESSION_ID}
 export const PAYMENT_LINKS: Record<PlanId, string> = {
 	monthly: "",
 	yearly: "",

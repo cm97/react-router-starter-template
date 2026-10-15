@@ -8,6 +8,7 @@
 		"enabled": true
 	},
 	"upload_source_maps": true,
+	"assets": { "binding": "ASSETS" },
 	"routes": [
 		{ "pattern": "kids.buzzyfly.com", "custom_domain": true }
 	]
