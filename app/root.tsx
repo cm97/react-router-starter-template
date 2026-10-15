@@ -71,10 +71,11 @@ function Footer() {
 					</a>
 					. No ads. No chat. No tracking.
 				</p>
-				<nav className="flex gap-4" aria-label="Footer">
+				<nav className="flex flex-wrap gap-4" aria-label="Footer">
 					<Link to="/lessons" className="underline">Lessons</Link>
 					<Link to="/games" className="underline">Games</Link>
 					<Link to="/family-pass" className="underline">For parents</Link>
+					<a href={SITE.parentSite.url} className="underline">← {SITE.parentSite.name}</a>
 				</nav>
 			</div>
 		</footer>
