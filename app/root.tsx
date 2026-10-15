@@ -71,7 +71,7 @@ function Footer() {
 					</a>
 					. No ads. No chat. No tracking.
 				</p>
-				<nav className="flex flex-wrap gap-4" aria-label="Footer">
+				<nav className="flex flex-wrap gap-x-4 [&_a]:inline-flex [&_a]:min-h-11 [&_a]:items-center" aria-label="Footer">
 					<Link to="/lessons" className="underline">Lessons</Link>
 					<Link to="/games" className="underline">Games</Link>
 					<Link to="/family-pass" className="underline">For parents</Link>

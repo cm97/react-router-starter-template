@@ -14,6 +14,10 @@ export const SITE = {
 	},
 } as const;
 
+// Where the app lives on buzzyfly.com. Must match `basename` in react-router.config.ts.
+export const BASE_PATH = "/kids";
+export const PUBLIC_ORIGIN = "https://buzzyfly.com";
+
 export type PlanId = "monthly" | "yearly";
 
 export const PLANS = {

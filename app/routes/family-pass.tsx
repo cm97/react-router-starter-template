@@ -1,6 +1,6 @@
 import { data, Form, Link, redirect, useNavigation } from "react-router";
 import type { Route } from "./+types/family-pass";
-import { PLANS, SITE, type PlanId } from "~/config";
+import { BASE_PATH, PLANS, SITE, type PlanId } from "~/config";
 import { GAMES, LEVELS_PER_GAME } from "~/data/games";
 import { LESSONS } from "~/data/lessons";
 import { createCheckout, hasPass, paymentsReady, portalUrl, subscriptionId } from "~/lib/pass.server";
@@ -31,7 +31,7 @@ export async function action({ request, context }: Route.ActionArgs) {
 
 	if (form.get("intent") === "manage") {
 		const subId = await subscriptionId(request, env);
-		const url = subId ? await portalUrl(env, subId, `${origin}/family-pass`).catch(() => null) : null;
+		const url = subId ? await portalUrl(env, subId, `${origin}${BASE_PATH}/family-pass`).catch(() => null) : null;
 		if (url) return redirect(url);
 		return data({ error: "We couldn't open your billing page. Use the link in your Stripe receipt email." }, { status: 502 });
 	}
