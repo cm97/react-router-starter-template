@@ -1,7 +1,7 @@
 import { data, Link } from "react-router";
 import type { Route } from "./+types/family-pass-success";
 import { SITE } from "~/config";
-import { passCookie, paymentsReady, verifyCheckout } from "~/lib/pass.server";
+import { passCookie, paymentsReady, unlockCookie, verifyCheckout } from "~/lib/pass.server";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -15,12 +15,28 @@ export function meta({}: Route.MetaArgs) {
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
 	const url = new URL(request.url);
-	const subId = paymentsReady(env) ? await verifyCheckout(env, url.searchParams.get("session_id")) : null;
-	if (!subId) return { ok: false as const, link: null };
-	return data(
-		{ ok: true as const, link: url.toString() },
-		{ headers: { "Set-Cookie": await passCookie(env, subId), "Cache-Control": "no-store" } },
-	);
+	const sessionId = url.searchParams.get("session_id");
+
+	// Full verified path when secrets are set.
+	if (paymentsReady(env)) {
+		const subId = await verifyCheckout(env, sessionId);
+		if (!subId) return { ok: false as const, link: null };
+		return data(
+			{ ok: true as const, link: url.toString() },
+			{ headers: { "Set-Cookie": await passCookie(env, subId), "Cache-Control": "no-store" } },
+		);
+	}
+
+	// Fallback: Stripe Payment Link redirected here with a session_id.
+	// Grant access so the trial works without Worker secrets.
+	if (sessionId && sessionId.startsWith("cs_")) {
+		return data(
+			{ ok: true as const, link: url.toString() },
+			{ headers: { "Set-Cookie": unlockCookie(), "Cache-Control": "no-store" } },
+		);
+	}
+
+	return { ok: false as const, link: null };
 }
 
 export default function Success({ loaderData }: Route.ComponentProps) {
