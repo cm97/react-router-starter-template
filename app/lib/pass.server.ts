@@ -3,14 +3,10 @@
 // The subscription's status is re-checked with Stripe at most every few
 // hours, so cancelled or unpaid plans lock again. No accounts and no
 // stored data about kids.
-//
-// When Worker secrets are not set, a simple unlock cookie set by the
-// success page (after Stripe redirects back) still grants access.
 
 import { BASE_PATH, PLANS, type PlanId } from "~/config";
 
 const COOKIE = "family_plan";
-const UNLOCK_COOKIE = "family_plan_unlock";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 400;
 const STATUS_TTL = 60 * 60 * 6;
 const SESSION_ID = /^cs_(test|live)_[A-Za-z0-9]+$/;
@@ -70,11 +66,6 @@ export function rawPassCookie(request: Request): string | null {
 	return cookie.match(new RegExp(`(?:^|;\\s*)${COOKIE}=([^;]+)`))?.[1] ?? null;
 }
 
-function rawUnlockCookie(request: Request): string | null {
-	const cookie = request.headers.get("Cookie") ?? "";
-	return cookie.match(new RegExp(`(?:^|;\\s*)${UNLOCK_COOKIE}=([^;]+)`))?.[1] ?? null;
-}
-
 async function verifiedSubId(env: Env, value: string | null): Promise<string | null> {
 	if (!env.SESSION_SECRET || !value) return null;
 	const [version, subId, sig] = value.split(".");
@@ -116,9 +107,6 @@ async function subscriptionInfo(env: Env, subId: string): Promise<SubInfo> {
 }
 
 export async function hasPass(request: Request, env: Env): Promise<boolean> {
-	// Fallback unlock cookie set by the success page when secrets are missing.
-	if (rawUnlockCookie(request) === "1") return true;
-
 	if (!paymentsReady(env)) return false;
 	const subId = await subscriptionId(request, env);
 	return subId ? (await subscriptionInfo(env, subId)).active : false;
@@ -137,11 +125,6 @@ export async function handoffCookie(env: Env, value: string): Promise<string | n
 export async function passCookie(env: Env, subId: string): Promise<string> {
 	const sig = await sign(env.SESSION_SECRET!, `v2.${subId}`);
 	return `${COOKIE}=v2.${subId}.${sig}; Path=${BASE_PATH}; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
-}
-
-/** Simple unlock cookie used when Worker secrets are not configured. */
-export function unlockCookie(): string {
-	return `${UNLOCK_COOKIE}=1; Path=${BASE_PATH}; Max-Age=${COOKIE_MAX_AGE}; HttpOnly; Secure; SameSite=Lax`;
 }
 
 export async function createCheckout(env: Env, origin: string, plan: PlanId): Promise<string> {
