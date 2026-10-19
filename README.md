@@ -29,14 +29,14 @@ The Family Plan is a Stripe subscription: $9.99/month or $79/year, with a
 7-day free trial. Until the secrets below are set, the buy button shows
 "Free trial opening soon" and all games and lessons stay locked.
 
-1. In Stripe, create a product called "Family Plan" with two **recurring** prices: $9.99 monthly and $79 yearly. Copy both `price_...` IDs.
+1. The live Stripe product "Buzzyfly Kids Family Plan" already has both recurring prices: `price_1URG2CRxSLoSSvA0xatTD87H` ($9.99/month) and `price_1URG2DRxSLoSSvA0OF4fQDOx` ($79/year).
 2. In Stripe, open **Settings → Billing → Customer portal** and save it once. That page is where parents manage or cancel.
 3. Set the secrets on the Worker:
 
    ```bash
    npx wrangler secret put STRIPE_SECRET_KEY      # sk_live_... (or sk_test_... to test)
-   npx wrangler secret put STRIPE_PRICE_MONTHLY   # price_... for $9.99/month
-   npx wrangler secret put STRIPE_PRICE_YEARLY    # price_... for $79/year
+   npx wrangler secret put STRIPE_PRICE_MONTHLY   # price_1URG2CRxSLoSSvA0xatTD87H ($9.99/month)
+   npx wrangler secret put STRIPE_PRICE_YEARLY    # price_1URG2DRxSLoSSvA0OF4fQDOx ($79/year)
    npx wrangler secret put SESSION_SECRET         # any long random string
    ```
 

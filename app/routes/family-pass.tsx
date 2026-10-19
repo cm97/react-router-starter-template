@@ -14,10 +14,6 @@ export function meta({}: Route.MetaArgs) {
 
 const rand = () => 6 + Math.floor(Math.random() * 4);
 
-// Live Stripe Payment Link for the $9.99/mo Family Plan (7-day trial).
-// Used when Worker secrets are not yet set so the trial button still works.
-const STRIPE_TRIAL_LINK = "https://buy.stripe.com/28E9AV3WU6N8fne6FwaVa0a";
-
 export async function loader({ request, context }: Route.LoaderArgs) {
 	const env = context.cloudflare.env;
 	return {
@@ -157,11 +153,9 @@ export default function FamilyPass({ loaderData, actionData }: Route.ComponentPr
 					<div className="text-center">
 						<p className="text-5xl font-bold text-indigo-950">{PLANS.monthly.price}<span className="text-xl text-slate-500">/month</span></p>
 						<p className="text-slate-600 mb-4">or {PLANS.yearly.price}/year</p>
-						<a href={STRIPE_TRIAL_LINK} className="btn-primary w-full inline-block text-center">
-							Start your {PLANS.trialDays}-day free trial
-						</a>
+						<button type="button" disabled className="btn-primary w-full">Free trial opening soon</button>
 						<p className="mt-3 text-slate-600">
-							Card required. Cancel anytime before day {PLANS.trialDays} and you won't be charged.
+							Please check back soon. Meanwhile, see every <Link to="/games" className="underline font-bold">game</Link> and <Link to="/lessons" className="underline font-bold">lesson</Link> you'll get.
 						</p>
 					</div>
 				)}
